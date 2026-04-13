@@ -163,7 +163,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 5%;display:flex
 #pricing{position:relative;z-index:1;padding:100px 5%}
 .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;max-width:1000px;margin:0 auto}
 .pricing-card{padding:40px;text-align:center;position:relative;overflow:hidden}
-.pricing-card.featured{border-color:rgba(79,70,229,.4);background:rgba(79,70,229,.08)}
+.pricing-card.ima{border-color:rgba(79,70,229,.4);background:rgba(79,70,229,.08)}
 .pricing-badge{display:inline-block;padding:4px 14px;background:linear-gradient(135deg,var(--indigo),var(--cyan));border-radius:50px;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px}
 .pricing-name{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:.02em;margin-bottom:16px;color:rgba(255,255,255,.7)}
 .pricing-price{font-family:'Syne',sans-serif;font-size:3rem;font-weight:800;line-height:1;margin-bottom:8px}
@@ -407,7 +407,21 @@ footer{position:relative;z-index:1;padding:60px 5% 30px;border-top:1px solid rgb
 <section id="portfolio">
   <div class="section-header reveal">
     <span class="section-tag">Our Work</span>
-    <h2 class="section-title">Featured Projects</h2>
+    <h1 class="section-title">images Projects</h1>
+    <p class="section-sub">A curated selection of recent projects that showcase our creative range.</p>
+  </div>
+  <div class="video-grid" id="video-grid">
+    <!-- Videos rendered by JS -->
+  </div>
+</section>
+
+</section>
+
+<!--  / VIDEO GRID -->
+<section id="portfolio">
+  <div class="section-header reveal">
+    <span class="section-tag">Our Work</span>
+    <h2 class="section-title">Video Projects</h2>
     <p class="section-sub">A curated selection of recent projects that showcase our creative range.</p>
   </div>
   <div class="video-grid" id="video-grid">
@@ -474,7 +488,7 @@ footer{position:relative;z-index:1;padding:60px 5% 30px;border-top:1px solid rgb
       </ul>
       <button class="btn-pricing btn-pricing-outline" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Get Started</button>
     </div>
-    <div class="glass pricing-card featured reveal reveal-delay-1">
+    <div class="glass pricing-card ima reveal reveal-delay-1">
       <div class="pricing-badge">Most Popular</div>
       <div class="pricing-name">Professional</div>
       <div class="pricing-price"><sup>$</sup><span id="price-pro">40</span></div>
@@ -947,63 +961,66 @@ function animCounter(el){
 }
 
 // ============================================================
-// VIDEO GRID
+//
 // ============================================================
-function ytToEmbed(url){
-  let id=url;
-  const m=url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  if(m) id=m[1];
-  return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
-}
-function fbToEmbed(url){
-  return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&width=560`;
-}
-function renderVideos(){
-  const grid=document.getElementById('video-grid');
-  grid.innerHTML='';
-  STATE.videos.forEach((v,i)=>{
-    const src=v.type==='youtube'?ytToEmbed(v.id):fbToEmbed(v.id);
-    const div=document.createElement('div');
-    div.className='video-thumb reveal';
-    div.style.transitionDelay=(i%3*.1)+'s';
-    div.innerHTML=`<iframe src="${src}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-    <div class="video-overlay"><span class="video-label">${v.label||''}</span></div>`;
-    grid.appendChild(div);
-    setTimeout(()=>revealObs.observe(div),50);
-  });
-  document.getElementById('dash-videos').textContent=STATE.videos.length;
-  document.getElementById('video-count').textContent=STATE.videos.length;
-  renderVideoList();
-}
-function renderVideoList(){
-  const list=document.getElementById('video-list');
-  if(!list) return;
-  list.innerHTML=STATE.videos.map((v,i)=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid rgba(255,255,255,.07)">
-      <div><span style="color:var(--cyan);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em">${v.type}</span><span style="margin-left:10px;font-size:.875rem">${v.label||v.id}</span></div>
-      <button onclick="removeVideo(${i})" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:6px;padding:4px 10px;font-size:.75rem;cursor:pointer;font-family:'DM Sans',sans-serif">Remove</button>
-    </div>
-  `).join('');
-}
-function addVideo(type){
-  const urlEl=document.getElementById(`new-${type==='youtube'?'yt':'fb'}-url`);
-  const lblEl=document.getElementById(`new-${type==='youtube'?'yt':'fb'}-label`);
-  const url=urlEl.value.trim();
-  if(!url) return;
-  let id=url;
-  if(type==='youtube'){
-    const m=url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-    if(m) id=m[1]; else id=url;
+// IMAGE GRID (පින්තූර පෙන්වන කොටස)
+// ============================================================
+
+// මෙතන ඔබ කැමති පින්තූර ලින්ක් සහ නම් ඇතුළත් කරන්න
+const projectImages = [
+  { 
+    label: "Creative Branding", 
+    url: "https://images.unsplash.com/photo-1522542550221-31fd19575a2d?w=800" 
+  },
+  { 
+    label: "Cinematic Motion", 
+    url: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800" 
+  },
+  { 
+    label: "Graphic Design", 
+    url: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800" 
+  },
+  { 
+    label: "Modern UI UX", 
+    url: "https://images.unsplash.com/photo-1586717791821-3f44a563eb4c?w=800" 
   }
-  STATE.videos.push({type,id,label:lblEl.value||id});
-  saveState(); renderVideos();
-  urlEl.value=''; lblEl.value='';
+];
+
+function renderImages() {
+  const grid = document.getElementById('video-grid');
+  if(!grid) return;
+  
+  grid.innerHTML = ''; // පැරණි වීඩියෝ ඉවත් කරයි
+
+  projectImages.forEach((p, i) => {
+    const div = document.createElement('div');
+    // පැරණි Animation එකම (reveal class එක) මෙහි ඇත
+    div.className = 'video-thumb reveal';
+    
+    // එකින් එක ලස්සනට මතු වීමට delay එකක් ලබා දෙයි
+    div.style.transitionDelay = (i % 3 * 0.1) + 's';
+    
+    div.innerHTML = `
+      <img src="${p.url}" alt="${p.label}" style="width:100%; height:100%; object-fit:cover; transition: transform 0.5s ease;">
+      <div class="video-overlay">
+        <span class="video-label">${p.label || ''}</span>
+      </div>
+    `;
+    
+    grid.appendChild(div);
+
+    // Animation එක ක්‍රියාත්මක කිරීමට අවශ්‍ය observer එක
+    if(typeof revealObs !== 'undefined') {
+      setTimeout(() => revealObs.observe(div), 50);
+    }
+  });
 }
-function removeVideo(i){
-  STATE.videos.splice(i,1);
-  saveState(); renderVideos();
-}
-renderVideos();
+
+// පිටුව Load වන විට පින්තූර පෙන්වීමට මෙය ක්‍රියාත්මක කරන්න
+renderImages();
+
+
+
 
 // ============================================================
 // TESTIMONIALS
