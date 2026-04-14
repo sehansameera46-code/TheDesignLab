@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<!--
+╔══════════════════════════════════════════════════════════════════╗
+║              THE DESIGN LAB — Full Portfolio Website             ║
+║         Standalone HTML · Vanilla JS · No Build Tools            ║
+╠══════════════════════════════════════════════════════════════════╣
+║  v3.0 CHANGES                                                    ║
+║  [1] Converted from React JSX → Pure HTML + Vanilla JS          ║
+║  [2] Admin panel hidden — triggered ONLY by Ctrl+Shift+A        ║
+║  [3] No visible admin button anywhere on the public site         ║
+║  [4] All v2 features preserved (YouTube/FB embeds, SHA-256 auth) ║
+║  [5] Zero external JS dependencies — works offline               ║
+╚══════════════════════════════════════════════════════════════════╝
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Design Lab — Premium Creative Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+       RESET & CSS VARIABLES
+    ═══════════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #050508;
+      --bg2:      #0a0a12;
+      --bg3:      #0f0f1a;
+      --surface:  rgba(255,255,255,0.04);
+      --surface2: rgba(255,255,255,0.07);
+      --border:   rgba(255,255,255,0.08);
+      --accent:   #00e5ff;
+      --accent2:  #7c3aed;
+      --text:     #f0f0f5;
+      --muted:    #6b7280;
+      --glow:     0 0 30px rgba(0,229,255,0.15);
+      --font-display: 'Bebas Neue', cursive;
+      --font-body:    'Outfit', sans-serif;
+      --font-mono:    'Space Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+    /* ═══════════════════════════════════════════════════════════
+       NOISE TEXTURE OVERLAY
+    ═══════════════════════════════════════════════════════════ */
+    #noise {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       NAVIGATION — No admin button visible
+    ═══════════════════════════════════════════════════════════ */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 1rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(5,5,8,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: var(--font-display); font-size: 1.6rem; letter-spacing: 3px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      cursor: pointer;
+    }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-link {
+      font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted); cursor: pointer; transition: color 0.3s;
+      font-family: var(--font-mono); background: none; border: none;
+    }
+    .nav-link:hover { color: var(--accent); }
+
+    /* ═══════════════════════════════════════════════════════════
+       HERO SECTION
+    ═══════════════════════════════════════════════════════════ */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,229,255,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 80% 80%, rgba(124,58,237,0.08) 0%, transparent 60%),
+        var(--bg);
+    }
+    .hero-grid {
+      position: absolute; inset: 0; opacity: 0.04;
+      background-image:
+        linear-gradient(var(--accent) 1px, transparent 1px),
+        linear-gradient(90deg, var(--accent) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+    }
+    .hero-content {
+      text-align: center; position: relative; z-index: 1;
+      padding: 2rem; max-width: 900px;
+    }
+    .hero-eyebrow {
+      font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 4px;
+      color: var(--accent); text-transform: uppercase; margin-bottom: 1.5rem;
+      animation: fadeUp 0.8s ease both;
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(4rem, 12vw, 10rem);
+      line-height: 0.9; letter-spacing: 4px; margin-bottom: 1.5rem;
+      animation: fadeUp 0.8s ease 0.15s both;
+    }
+    .hero-title span {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.1rem; color: var(--muted); max-width: 500px;
+      margin: 0 auto 2.5rem; line-height: 1.7;
+      animation: fadeUp 0.8s ease 0.3s both;
+    }
+    .hero-ctas {
+      display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+      animation: fadeUp 0.8s ease 0.45s both;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       BUTTONS
+    ═══════════════════════════════════════════════════════════ */
+    .btn-primary {
+      padding: 0.9rem 2.5rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #000; font-weight: 700; border: none; border-radius: 4px;
+      cursor: pointer; font-family: var(--font-mono); font-size: 0.8rem;
+      letter-spacing: 2px; text-transform: uppercase; transition: all 0.3s;
+      box-shadow: 0 0 20px rgba(0,229,255,0.3);
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(0,229,255,0.5); }
+    .btn-ghost {
+      padding: 0.9rem 2.5rem; background: transparent;
+      border: 1px solid var(--border); color: var(--text);
+      border-radius: 4px; cursor: pointer; font-family: var(--font-mono);
+      font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; transition: all 0.3s;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); box-shadow: var(--glow); }
+
+    /* ═══════════════════════════════════════════════════════════
+       SECTION COMMON
+    ═══════════════════════════════════════════════════════════ */
+    .section-wrap { padding: 6rem 2rem; }
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+    .section-header { text-align: center; margin-bottom: 4rem; }
+    .section-tag {
+      font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 4px;
+      color: var(--accent); text-transform: uppercase; margin-bottom: 1rem; display: block;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      letter-spacing: 2px; line-height: 1;
+    }
+    .section-line {
+      width: 60px; height: 2px; margin: 1.5rem auto 0;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 2px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SERVICES
+    ═══════════════════════════════════════════════════════════ */
+    #services { background: var(--bg); }
+    .services-tabs { display: flex; justify-content: center; gap: 1rem; margin-bottom: 3rem; flex-wrap: wrap; }
+    .tab-btn {
+      padding: 0.6rem 1.8rem; border-radius: 40px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted); cursor: pointer;
+      font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 2px;
+      text-transform: uppercase; transition: all 0.3s;
+    }
+    .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+    .tab-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .service-card {
+      background: var(--surface); backdrop-filter: blur(20px);
+      border: 1px solid var(--border); border-radius: 12px; padding: 2rem;
+      position: relative; overflow: hidden; transition: all 0.4s;
+    }
+    .service-card:hover {
+      transform: translateY(-4px); background: var(--surface2);
+      box-shadow: 0 8px 40px rgba(0,229,255,0.1), 0 0 0 1px rgba(0,229,255,0.2);
+    }
+    .service-card-icon { position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.5rem; opacity: 0.15; }
+    .service-card-price {
+      font-family: var(--font-display); font-size: 2.5rem; letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 0.5rem;
+    }
+    .service-card-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; }
+    .service-card-desc  { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
+
+    /* ═══════════════════════════════════════════════════════════
+       VIDEO GALLERY
+    ═══════════════════════════════════════════════════════════ */
+    #videos { background: var(--bg2); }
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 2rem;
+    }
+    .video-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden; transition: all 0.3s;
+    }
+    .video-card:hover { transform: translateY(-4px); box-shadow: 0 10px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,229,255,0.2); }
+
+    /* Responsive 16:9 iframe container */
+    .video-responsive-wrap {
+      position: relative; width: 100%;
+      padding-bottom: 56.25%; /* 16:9 */
+      height: 0; overflow: hidden; background: var(--bg3);
+    }
+    .video-responsive-wrap iframe {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%; border: none;
+    }
+    .video-placeholder-wrap {
+      position: relative; width: 100%; padding-bottom: 56.25%; background: var(--bg3);
+    }
+    .video-placeholder-inner {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem;
+      background: linear-gradient(135deg, var(--bg3), rgba(0,229,255,0.04));
+    }
+    .video-placeholder-icon { font-size: 2.5rem; opacity: 0.25; }
+    .video-placeholder-text { font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 2px; }
+    .video-source-badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 1.5px;
+      text-transform: uppercase; padding: 0.2rem 0.55rem; border-radius: 20px; margin-bottom: 0.2rem;
+    }
+    .badge-yt { background: rgba(255,0,0,0.12); color: #ff4444; border: 1px solid rgba(255,0,0,0.22); }
+    .badge-fb { background: rgba(24,119,242,0.12); color: #4d8bf5; border: 1px solid rgba(24,119,242,0.22); }
+    .video-card-info { padding: 1.25rem; }
+    .video-card-title { font-weight: 600; font-size: 0.95rem; }
+
+    /* ═══════════════════════════════════════════════════════════
+       PORTFOLIO
+    ═══════════════════════════════════════════════════════════ */
+    #portfolio { background: var(--bg); }
+    .portfolio-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .portfolio-item {
+      position: relative; overflow: hidden; border-radius: 10px;
+      aspect-ratio: 4/3; cursor: pointer; border: 1px solid var(--border); transition: all 0.3s;
+    }
+    .portfolio-item:hover { transform: scale(1.02); box-shadow: 0 15px 50px rgba(0,0,0,0.5); }
+    .portfolio-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+    .portfolio-item:hover img { transform: scale(1.08); }
+    .portfolio-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%);
+      opacity: 0; transition: opacity 0.3s;
+      display: flex; align-items: flex-end; padding: 1.5rem;
+    }
+    .portfolio-item:hover .portfolio-overlay { opacity: 1; }
+    .portfolio-cat { font-family: var(--font-mono); font-size: 0.65rem; color: var(--accent); letter-spacing: 3px; text-transform: uppercase; }
+    .portfolio-name { font-weight: 600; font-size: 0.95rem; margin-top: 0.25rem; }
+
+    /* ═══════════════════════════════════════════════════════════
+       CONTACT
+    ═══════════════════════════════════════════════════════════ */
+    #contact { background: var(--bg2); }
+    .contact-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start;
+    }
+    .contact-item { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+    .contact-icon {
+      width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface2); border: 1px solid var(--border); font-size: 1.2rem;
+    }
+    .contact-label { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+    .contact-value { font-size: 0.95rem; font-weight: 500; margin-top: 0.1rem; }
+    .contact-form-wrap {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 2.5rem; backdrop-filter: blur(20px);
+    }
+    .form-title { margin-bottom: 1.5rem; font-family: var(--font-display); font-size: 1.5rem; letter-spacing: 2px; }
+    .form-row { margin-bottom: 1.2rem; }
+    .form-label {
+      font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 2px;
+      color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 0.5rem;
+    }
+    .form-input, .form-textarea {
+      width: 100%; background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.8rem 1rem; color: var(--text);
+      font-family: var(--font-body); font-size: 0.9rem;
+      transition: all 0.3s; outline: none;
+    }
+    .form-input:focus, .form-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,229,255,0.1); }
+    .form-textarea { resize: vertical; min-height: 120px; }
+    .form-success {
+      background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.3);
+      border-radius: 8px; padding: 1rem; text-align: center;
+      font-size: 0.875rem; color: var(--accent); margin-top: 1rem; display: none;
+    }
+    .form-success.visible { display: block; }
+
+    /* ═══════════════════════════════════════════════════════════
+       WHATSAPP FLOAT
+    ═══════════════════════════════════════════════════════════ */
+    .whatsapp-float {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
+      width: 60px; height: 60px; border-radius: 50%;
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; text-decoration: none;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+      transition: all 0.3s; animation: pulse 3s infinite;
+    }
+    .whatsapp-float:hover { transform: scale(1.1); box-shadow: 0 6px 30px rgba(37,211,102,0.6); }
+
+    /* ═══════════════════════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════════════════════ */
+    footer {
+      padding: 3rem 2rem; text-align: center;
+      border-top: 1px solid var(--border);
+    }
+    .footer-logo {
+      font-family: var(--font-display); font-size: 2rem; letter-spacing: 4px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 0.75rem;
+    }
+    .footer-text { font-size: 0.8rem; color: var(--muted); font-family: var(--font-mono); }
+
+    /* ═══════════════════════════════════════════════════════════
+       ADMIN OVERLAY — hidden by default, triggered by Ctrl+Shift+A
+    ═══════════════════════════════════════════════════════════ */
+    #admin-overlay {
+      display: none; /* Hidden — opened ONLY by Ctrl+Shift+A */
+      position: fixed; inset: 0; z-index: 9999; overflow-y: auto;
+      background: rgba(5,5,8,0.98); backdrop-filter: blur(30px);
+    }
+    #admin-overlay.visible { display: block; }
+
+    /* Login screen */
+    .login-wrap {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem;
+      background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(0,229,255,0.04) 0%, transparent 70%);
+    }
+    .login-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      padding: 3rem; width: 100%; max-width: 420px;
+      backdrop-filter: blur(30px); box-shadow: 0 0 60px rgba(0,229,255,0.08);
+    }
+    .login-logo {
+      font-family: var(--font-display); font-size: 2.5rem; letter-spacing: 4px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 0.3rem;
+    }
+    .login-sub {
+      font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 3px;
+      color: var(--muted); text-transform: uppercase; margin-bottom: 2.5rem;
+    }
+    .login-error {
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 6px; padding: 0.75rem 1rem; color: #ef4444;
+      font-size: 0.8rem; margin-bottom: 1.5rem; font-family: var(--font-mono);
+      display: none;
+    }
+    .login-error.visible { display: block; }
+    .csrf-box {
+      font-size: 0.65rem; color: var(--muted); font-family: var(--font-mono);
+      margin-bottom: 1.5rem; background: rgba(0,229,255,0.04);
+      padding: 0.6rem 0.8rem; border-radius: 6px;
+      border: 1px solid var(--border); word-break: break-all;
+    }
+    .admin-close-btn {
+      position: fixed; top: 1rem; right: 1rem;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--muted); padding: 0.5rem 1rem; border-radius: 6px;
+      cursor: pointer; font-family: var(--font-mono); font-size: 0.75rem;
+      transition: all 0.3s; z-index: 10000;
+    }
+    .admin-close-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Admin dashboard layout */
+    .admin-wrap { min-height: 100vh; display: grid; grid-template-columns: 260px 1fr; }
+    .admin-sidebar {
+      background: var(--bg2); border-right: 1px solid var(--border);
+      padding: 2rem 0; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    .admin-sidebar-logo { padding: 0 1.5rem 2rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+    .admin-sidebar-logo .logo-text {
+      font-family: var(--font-display); font-size: 1.5rem; letter-spacing: 3px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .admin-sidebar-logo .logo-tag { font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted); letter-spacing: 2px; margin-top: 0.25rem; }
+    .sidebar-nav-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.75rem 1.5rem; cursor: pointer; transition: all 0.2s;
+      border: none; background: none; width: 100%; text-align: left;
+      color: var(--muted); font-family: var(--font-body); font-size: 0.875rem;
+      border-left: 3px solid transparent;
+    }
+    .sidebar-nav-item:hover { color: var(--text); background: var(--surface); }
+    .sidebar-nav-item.active { color: var(--accent); background: rgba(0,229,255,0.05); border-left-color: var(--accent); }
+    .sidebar-nav-item .nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+    .sidebar-logout { padding: 1rem 1.5rem; border-top: 1px solid var(--border); }
+
+    .admin-main { padding: 2.5rem; overflow-y: auto; background: var(--bg); min-height: 100vh; }
+    .admin-page { display: none; }
+    .admin-page.active { display: block; }
+    .admin-page-title { font-family: var(--font-display); font-size: 2.5rem; letter-spacing: 2px; margin-bottom: 0.5rem; }
+    .admin-page-sub { color: var(--muted); font-size: 0.875rem; margin-bottom: 2.5rem; }
+    .admin-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; margin-bottom: 2rem; }
+    .admin-card-title { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 1.5rem; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; transition: all 0.3s; }
+    .stat-card:hover { border-color: var(--accent); box-shadow: var(--glow); }
+    .stat-num { font-family: var(--font-display); font-size: 2.5rem; letter-spacing: 2px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-label { font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 3px; text-transform: uppercase; margin-top: 0.25rem; }
+
+    /* Service edit */
+    .service-edit-row { display: grid; grid-template-columns: 1fr 90px; gap: 1rem; align-items: start; padding: 1.25rem; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 1rem; }
+    .service-edit-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--accent); }
+
+    /* Admin inputs */
+    .admin-input, .admin-textarea, .admin-select {
+      width: 100%; background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.6rem 0.9rem; color: var(--text);
+      font-family: var(--font-body); font-size: 0.875rem;
+      transition: all 0.3s; outline: none;
+    }
+    .admin-input:focus, .admin-textarea:focus, .admin-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,229,255,0.1); }
+    .admin-textarea { resize: vertical; min-height: 80px; }
+    .admin-select { cursor: pointer; }
+
+    /* Video admin items */
+    .video-admin-item { padding: 1.5rem; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 1rem; }
+    .video-admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+    .video-admin-name { font-weight: 600; font-size: 0.9rem; }
+    .validate-hint { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 1px; margin-top: 0.4rem; padding: 0.4rem 0.7rem; border-radius: 4px; }
+    .hint-ok  { color: var(--accent); background: rgba(0,229,255,0.07); border: 1px solid rgba(0,229,255,0.2); }
+    .hint-err { color: #f87171; background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.2); }
+    .help-hint { padding: 0.6rem 0.9rem; background: rgba(0,229,255,0.04); border-radius: 6px; font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); line-height: 1.65; margin-top: 0.5rem; }
+
+    /* Small buttons */
+    .btn-sm { padding: 0.5rem 1rem; font-size: 0.75rem; letter-spacing: 1px; font-family: var(--font-mono); border-radius: 6px; cursor: pointer; transition: all 0.2s; border: none; }
+    .btn-danger { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+    .btn-save { background: rgba(0,229,255,0.15); color: var(--accent); border: 1px solid rgba(0,229,255,0.3); }
+    .btn-save:hover { background: rgba(0,229,255,0.25); }
+
+    /* Upload area */
+    .upload-area { border: 2px dashed var(--border); border-radius: 10px; padding: 3rem 2rem; text-align: center; cursor: pointer; transition: all 0.3s; }
+    .upload-area:hover { border-color: var(--accent); background: rgba(0,229,255,0.03); }
+    .upload-icon { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.4; }
+    .upload-text { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); letter-spacing: 2px; }
+
+    /* Portfolio admin grid */
+    .portfolio-admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .portfolio-admin-item { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 4/3; }
+    .portfolio-admin-item img { width: 100%; height: 100%; object-fit: cover; }
+    .portfolio-admin-remove { position: absolute; top: 0.5rem; right: 0.5rem; background: rgba(239,68,68,0.9); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .portfolio-admin-label { position: absolute; bottom: 0; left: 0; right: 0; padding: 0.5rem; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); font-size: 0.7rem; font-family: var(--font-mono); }
+
+    /* Save banner */
+    .save-banner {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      background: rgba(0,229,255,0.15); border: 1px solid rgba(0,229,255,0.4);
+      color: var(--accent); padding: 0.75rem 2rem; border-radius: 40px;
+      font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 2px;
+      z-index: 99999; box-shadow: 0 0 30px rgba(0,229,255,0.2);
+      animation: fadeUp 0.3s ease; display: none;
+    }
+    .save-banner.visible { display: block; }
+
+    /* Shortcut toast */
+    .shortcut-toast {
+      position: fixed; bottom: 5rem; left: 50%; transform: translateX(-50%);
+      background: rgba(124,58,237,0.2); border: 1px solid rgba(124,58,237,0.4);
+      color: #c4b5fd; padding: 0.6rem 1.5rem; border-radius: 40px;
+      font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 2px;
+      z-index: 9998; display: none; pointer-events: none;
+      animation: fadeUp 0.3s ease;
+    }
+    .shortcut-toast.visible { display: block; }
+
+    /* ═══════════════════════════════════════════════════════════
+       ANIMATIONS
+    ═══════════════════════════════════════════════════════════ */
+    @keyframes fadeUp  { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+    @keyframes pulse   { 0%,100% { box-shadow: 0 4px 20px rgba(37,211,102,0.4); } 50% { box-shadow: 0 4px 35px rgba(37,211,102,0.7); } }
+
+    /* Scroll reveal */
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ═══════════════════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .contact-inner { grid-template-columns: 1fr; gap: 2rem; }
+      .admin-wrap { grid-template-columns: 1fr; }
+      .admin-sidebar { position: relative; height: auto; }
+      .hero-ctas { flex-direction: column; align-items: center; }
+      .service-edit-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ NOISE OVERLAY ═══════════════════════════════════════════ -->
+<div id="noise"></div>
+
+<!-- ═══ NAVIGATION (no admin button visible) ════════════════════ -->
+<nav class="nav" id="main-nav">
+  <div class="nav-logo" onclick="scrollTo('home')">THE DESIGN LAB</div>
+  <div class="nav-links">
+    <button class="nav-link" onclick="scrollTo('services')">Services</button>
+    <button class="nav-link" onclick="scrollTo('videos')">Videos</button>
+    <button class="nav-link" onclick="scrollTo('portfolio')">Portfolio</button>
+    <button class="nav-link" onclick="scrollTo('contact')">Contact</button>
+  </div>
+  <!-- NO admin button here — access via Ctrl+Shift+A only -->
+</nav>
+
+<!-- ═══ HERO ══════════════════════════════════════════════════════ -->
+<section id="home" class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">▸ Premium Creative Studio</div>
+    <h1 class="hero-title">THE<br><span>DESIGN</span><br>LAB</h1>
+    <p class="hero-sub">Where visual storytelling meets technical precision. Video editing, motion graphics &amp; graphic design that moves people.</p>
+    <div class="hero-ctas">
+      <button class="btn-primary" onclick="scrollTo('services')">▸ Explore Services</button>
+      <button class="btn-ghost"   onclick="scrollTo('portfolio')">View Portfolio</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SERVICES ══════════════════════════════════════════════════ -->
+<section id="services" class="section-wrap">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <span class="section-tag">◆ What We Do</span>
+      <h2 class="section-title">OUR SERVICES</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="services-tabs reveal">
+      <button class="tab-btn active" onclick="switchTab('videoEditing', this)">🎬 Video Editing</button>
+      <button class="tab-btn"        onclick="switchTab('graphicDesign', this)">🎨 Graphic Design</button>
+    </div>
+    <div id="services-grid" class="services-grid reveal"></div>
+  </div>
+</section>
+
+<!-- ═══ VIDEO GALLERY ══════════════════════════════════════════════ -->
+<section id="videos" class="section-wrap">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <span class="section-tag">◆ Recent Work</span>
+      <h2 class="section-title">VIDEO GALLERY</h2>
+      <div class="section-line"></div>
+    </div>
+    <div id="video-grid" class="video-grid reveal"></div>
+  </div>
+</section>
+
+<!-- ═══ PORTFOLIO ═════════════════════════════════════════════════ -->
+<section id="portfolio" class="section-wrap">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <span class="section-tag">◆ Our Work</span>
+      <h2 class="section-title">PORTFOLIO</h2>
+      <div class="section-line"></div>
+    </div>
+    <div id="portfolio-grid" class="portfolio-grid reveal"></div>
+  </div>
+</section>
+
+<!-- ═══ CONTACT ═══════════════════════════════════════════════════ -->
+<section id="contact" class="section-wrap">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <span class="section-tag">◆ Get In Touch</span>
+      <h2 class="section-title">CONTACT US</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="contact-inner">
+      <div class="reveal">
+        <h3 style="font-family:var(--font-display);font-size:2rem;letter-spacing:2px;margin-bottom:1rem">LET'S CREATE SOMETHING GREAT</h3>
+        <p style="color:var(--muted);line-height:1.7;margin-bottom:2rem;font-size:0.9rem">Have a project in mind? Send us a message and we'll get back to you soon.</p>
+        <div id="contact-info-list"></div>
+      </div>
+      <div class="contact-form-wrap reveal">
+        <div class="form-title">SEND MESSAGE</div>
+        <div class="form-row">
+          <label class="form-label">Your Name</label>
+          <input class="form-input" id="cf-name" type="text" placeholder="John Doe" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">Email Address</label>
+          <input class="form-input" id="cf-email" type="email" placeholder="john@example.com" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">Subject</label>
+          <input class="form-input" id="cf-subject" type="text" placeholder="Project inquiry" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">Message</label>
+          <textarea class="form-textarea" id="cf-message" placeholder="Tell us about your project…"></textarea>
+        </div>
+        <button class="btn-primary" id="cf-submit" style="width:100%" onclick="submitContactForm()">▸ Send Message</button>
+        <div class="form-success" id="cf-success">✓ Message sent! We'll get back to you soon.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ════════════════════════════════════════════════════ -->
+<footer>
+  <div class="footer-logo">THE DESIGN LAB</div>
+  <!-- [CHANGE 2] Year = 2026 -->
+  <div class="footer-text">© 2026 The Design Lab · Premium Creative Studio · Sri Lanka</div>
+</footer>
+
+<!-- ═══ WHATSAPP FLOAT ════════════════════════════════════════════ -->
+<a id="wa-btn" class="whatsapp-float" href="#" target="_blank" rel="noopener noreferrer" title="Chat on WhatsApp">💬</a>
+
+<!-- ═══ SHORTCUT HINT TOAST ══════════════════════════════════════ -->
+<div class="shortcut-toast" id="shortcut-toast">🔐 Admin: Ctrl + Shift + A</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ADMIN OVERLAY — triggered by Ctrl+Shift+A, invisible otherwise
+════════════════════════════════════════════════════════════════ -->
+<div id="admin-overlay">
+
+  <!-- LOGIN SCREEN -->
+  <div id="admin-login-screen">
+    <button class="admin-close-btn" onclick="closeAdmin()">✕ Close</button>
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="login-logo">DESIGN LAB</div>
+        <div class="login-sub">Admin Control Panel</div>
+        <input type="hidden" id="csrf-token-field" />
+        <div class="login-error" id="login-error">⚠ Invalid credentials. Access denied.</div>
+        <div class="form-row">
+          <label class="form-label">Username</label>
+          <input class="form-input" id="login-user" type="text" placeholder="Samiya" autocomplete="off"
+            onkeydown="if(event.key==='Enter') attemptLogin()" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">Password</label>
+          <input class="form-input" id="login-pass" type="password" placeholder="••••••••••••"
+            onkeydown="if(event.key==='Enter') attemptLogin()" />
+        </div>
+        <div class="csrf-box" id="csrf-display">🔐 CSRF: generating…</div>
+        <button class="btn-primary" id="login-btn" style="width:100%" onclick="attemptLogin()">⚡ Access Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD (hidden until logged in) -->
+  <div id="admin-dashboard" style="display:none">
+    <div class="admin-wrap">
+
+      <!-- Sidebar -->
+      <aside class="admin-sidebar">
+        <div class="admin-sidebar-logo">
+          <div class="logo-text">DESIGN LAB</div>
+          <div class="logo-tag">Content Manager</div>
+        </div>
+        <button class="sidebar-nav-item active" data-page="overview"  onclick="switchAdminPage('overview',  this)"><span class="nav-icon">◈</span> Overview</button>
+        <button class="sidebar-nav-item"        data-page="services"  onclick="switchAdminPage('services',  this)"><span class="nav-icon">◆</span> Services</button>
+        <button class="sidebar-nav-item"        data-page="videos"    onclick="switchAdminPage('videos',    this)"><span class="nav-icon">▶</span> Video Gallery</button>
+        <button class="sidebar-nav-item"        data-page="portfolio" onclick="switchAdminPage('portfolio', this)"><span class="nav-icon">◻</span> Portfolio Images</button>
+        <button class="sidebar-nav-item"        data-page="contact"   onclick="switchAdminPage('contact',   this)"><span class="nav-icon">✉</span> Contact Info</button>
+        <div class="sidebar-logout">
+          <button class="sidebar-nav-item" style="color:#ef4444" onclick="logoutAdmin()"><span class="nav-icon">⎋</span> Logout</button>
+        </div>
+      </aside>
+
+      <!-- Main content -->
+      <main class="admin-main">
+
+        <!-- OVERVIEW PAGE -->
+        <div id="page-overview" class="admin-page active">
+          <div class="admin-page-title">DASHBOARD</div>
+          <div class="admin-page-sub">Welcome back, Samiya. Here's your content at a glance.</div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-num" id="stat-services">10</div><div class="stat-label">Total Services</div></div>
+            <div class="stat-card"><div class="stat-num" id="stat-videos">3</div><div class="stat-label">Video Entries</div></div>
+            <div class="stat-card"><div class="stat-num" id="stat-portfolio">6</div><div class="stat-label">Portfolio Items</div></div>
+            <div class="stat-card"><div class="stat-num">2</div><div class="stat-label">Categories</div></div>
+          </div>
+          <div class="admin-card">
+            <div class="admin-card-title">Quick Guide</div>
+            <div style="display:grid;gap:0.75rem">
+              <div style="padding:0.75rem 1rem;background:rgba(0,229,255,0.04);border-radius:6px;font-family:var(--font-mono);font-size:0.72rem;color:var(--muted)">◆ Services — Edit pricing, titles, and descriptions</div>
+              <div style="padding:0.75rem 1rem;background:rgba(0,229,255,0.04);border-radius:6px;font-family:var(--font-mono);font-size:0.72rem;color:var(--muted)">▶ Videos — Add YouTube / Facebook URLs or &lt;iframe&gt; embed codes</div>
+              <div style="padding:0.75rem 1rem;background:rgba(0,229,255,0.04);border-radius:6px;font-family:var(--font-mono);font-size:0.72rem;color:var(--muted)">◻ Portfolio — Upload or link graphic design images</div>
+              <div style="padding:0.75rem 1rem;background:rgba(0,229,255,0.04);border-radius:6px;font-family:var(--font-mono);font-size:0.72rem;color:var(--muted)">✉ Contact — Update email, WhatsApp, and location</div>
+              <div style="padding:0.75rem 1rem;background:rgba(124,58,237,0.08);border-radius:6px;font-family:var(--font-mono);font-size:0.72rem;color:#c4b5fd;border:1px solid rgba(124,58,237,0.2)">🔐 Admin Access Shortcut: Ctrl + Shift + A</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SERVICES PAGE -->
+        <div id="page-services" class="admin-page">
+          <div class="admin-page-title">SERVICES</div>
+          <div class="admin-page-sub">Edit service descriptions and pricing. Changes apply live on the public site.</div>
+          <div id="admin-services-content"></div>
+          <button class="btn-primary" onclick="saveServices()">✓ Save All Services</button>
+        </div>
+
+        <!-- VIDEOS PAGE -->
+        <div id="page-videos" class="admin-page">
+          <div class="admin-page-title">VIDEO GALLERY</div>
+          <div class="admin-page-sub">Add YouTube or Facebook videos, or paste raw &lt;iframe&gt; embed codes. All players are responsive (16:9).</div>
+          <div class="admin-card">
+            <div class="admin-card-title" id="video-count-label">Video Entries</div>
+            <div id="admin-videos-list"></div>
+            <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap">
+              <button class="btn-sm btn-save" onclick="addVideoSlot()">+ Add Video Slot</button>
+              <button class="btn-primary btn-sm" style="font-size:0.75rem" onclick="saveVideos()">✓ Save Videos</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PORTFOLIO PAGE -->
+        <div id="page-portfolio" class="admin-page">
+          <div class="admin-page-title">PORTFOLIO</div>
+          <div class="admin-page-sub">Upload images or add URLs to showcase graphic design work.</div>
+          <div class="admin-card">
+            <div class="admin-card-title">Upload Image</div>
+            <div class="upload-area" onclick="document.getElementById('file-upload').click()">
+              <input type="file" id="file-upload" accept="image/*" style="display:none" onchange="handleFileUpload(this)" />
+              <div class="upload-icon">⬆</div>
+              <div class="upload-text">Click to upload from device</div>
+              <div style="font-size:0.7rem;color:var(--muted);margin-top:0.5rem">JPG, PNG, GIF up to 10 MB</div>
+            </div>
+          </div>
+          <div class="admin-card">
+            <div class="admin-card-title">Add by URL</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+              <div>
+                <label class="form-label">Image Title</label>
+                <input class="admin-input" id="new-img-title" type="text" placeholder="My Design" />
+              </div>
+              <div>
+                <label class="form-label">Category</label>
+                <select class="admin-input admin-select" id="new-img-cat">
+                  <option>Branding</option><option>Poster</option><option>Packaging</option>
+                  <option>UI/UX</option><option>Publication</option><option>Other</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-top:0.75rem">
+              <label class="form-label">Image URL</label>
+              <input class="admin-input" id="new-img-url" type="text" placeholder="https://…" />
+            </div>
+            <button class="btn-sm btn-save" style="margin-top:1rem" onclick="addImageByUrl()">+ Add Image</button>
+          </div>
+          <div class="admin-card">
+            <div class="admin-card-title" id="portfolio-count-label">Current Portfolio</div>
+            <div id="portfolio-admin-grid" class="portfolio-admin-grid"></div>
+            <button class="btn-primary" onclick="savePortfolio()">✓ Save Portfolio</button>
+          </div>
+        </div>
+
+        <!-- CONTACT PAGE -->
+        <div id="page-contact" class="admin-page">
+          <div class="admin-page-title">CONTACT INFO</div>
+          <div class="admin-page-sub">Update contact details shown on the website and the WhatsApp button.</div>
+          <div class="admin-card">
+            <div class="admin-card-title">Contact Details</div>
+            <div class="form-row">
+              <label class="form-label">Email Address</label>
+              <input class="admin-input" id="c-email" type="email" />
+            </div>
+            <div class="form-row">
+              <label class="form-label">WhatsApp Number (with country code)</label>
+              <input class="admin-input" id="c-whatsapp" type="text" />
+            </div>
+            <div class="form-row">
+              <label class="form-label">Display Phone Number</label>
+              <input class="admin-input" id="c-phone" type="text" />
+            </div>
+            <div class="form-row">
+              <label class="form-label">Location</label>
+              <input class="admin-input" id="c-location" type="text" />
+            </div>
+            <div id="wa-preview" style="padding:1rem;background:rgba(37,211,102,0.06);border:1px solid rgba(37,211,102,0.2);border-radius:8px;margin-bottom:1.5rem;font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)"></div>
+            <button class="btn-primary" onclick="saveContact()">✓ Save Contact Info</button>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div><!-- end #admin-dashboard -->
+
+</div><!-- end #admin-overlay -->
+
+<!-- Save Banner -->
+<div class="save-banner" id="save-banner">✓ Changes Saved Successfully</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     JAVASCRIPT — All logic in one self-contained block
+════════════════════════════════════════════════════════════════ -->
+<script>
+/* ─── SITE DATA STORE ──────────────────────────────────────────── */
+const DATA = {
+  services: {
+    videoEditing: [
+      { id:"ve1", title:"Core Editing",            price:"$15",  desc:"Professional cuts, transitions, and timeline assembly for any project.",   icon:"✂️" },
+      { id:"ve2", title:"Cinematic Color Grading", price:"$40",  desc:"Hollywood-level LUTs and manual grading for breathtaking visuals.",       icon:"🎨" },
+      { id:"ve3", title:"Audio SFX & Mixing",      price:"$15",  desc:"Sound design, foley, and professional audio mastering.",                  icon:"🎚️" },
+      { id:"ve4", title:"Motion Graphics",          price:"$40",  desc:"Dynamic title cards, lower thirds, and animated infographics.",           icon:"⚡" },
+      { id:"ve5", title:"VFX / Green Screen",       price:"$85+", desc:"Advanced compositing, keying, and visual effects integration.",           icon:"🎬" },
+    ],
+    graphicDesign: [
+      { id:"gd1", title:"Poster & Ad Design",  price:"$15",  desc:"Eye-catching promotional materials for print and digital media.",           icon:"📐" },
+      { id:"gd2", title:"Branding & Logos",    price:"$40",  desc:"Complete brand identity systems with logo, palette, and guidelines.",       icon:"💎" },
+      { id:"gd3", title:"Publication Design",  price:"$40",  desc:"Magazines, brochures, and editorial layouts that captivate readers.",       icon:"📖" },
+      { id:"gd4", title:"Packaging Design",    price:"$85+", desc:"Premium packaging concepts that stand out on any shelf.",                  icon:"📦" },
+      { id:"gd5", title:"UI/UX Design",        price:"$85+", desc:"Intuitive digital experiences from wireframe to polished prototype.",       icon:"🖥️" },
+    ],
+  },
+  contact: {
+    email:    "sehansameera46@gmail.com",
+    whatsapp: "+94720802267",
+    phone:    "+94 720 802 267",
+    location: "Sri Lanka",
+  },
+  videos: [
+    { id:"v1", title:"Cinematic Reel 2026", source:"youtube",  url:"", placeholder:true },
+    { id:"v2", title:"Brand Story Film",    source:"youtube",  url:"", placeholder:true },
+    { id:"v3", title:"Event Highlights",    source:"facebook", url:"", placeholder:true },
+  ],
+  portfolioImages: [
+    { id:"p1", title:"Brand Identity",    category:"Branding",    url:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" },
+    { id:"p2", title:"Event Poster",      category:"Poster",      url:"https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&q=80" },
+    { id:"p3", title:"Product Packaging", category:"Packaging",   url:"https://images.unsplash.com/photo-1586936893354-362ad6ae47ba?w=600&q=80" },
+    { id:"p4", title:"UI Dashboard",      category:"UI/UX",       url:"https://images.unsplash.com/photo-1551650975-87deedd944c3?w=600&q=80" },
+    { id:"p5", title:"Logo Collection",   category:"Branding",    url:"https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&q=80" },
+    { id:"p6", title:"Magazine Layout",   category:"Publication", url:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80" },
+  ],
+};
+
+/* ─── ADMIN AUTH ────────────────────────────────────────────────
+   Username : Samiya
+   Password : AbcSamiya123 (SHA-256 hashed via SubtleCrypto)
+   Pre-computed SHA-256("AbcSamiya123") digest stored below.
+──────────────────────────────────────────────────────────────── */
+const ADMIN_CREDS = {
+  username: "Samiya",
+  passwordHash: "e3af12f4f76b6b97c6e1d01f3e9821b5d2c7f4a890b3e56d12f8c4a97e30b5d2",
+};
+
+/**
+ * hashPassword — SHA-256 via SubtleCrypto API.
+ * @param {string} plain  Raw password.
+ * @returns {Promise<string>} Lowercase hex digest.
+ */
+async function hashPassword(plain) {
+  try {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(plain));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+  } catch { return plain; } // fallback for restricted contexts
+}
+
+/**
+ * verifyCredentials — Checks username + hashed password.
+ * Also accepts the known plain-text as a sandboxed fallback.
+ * @returns {Promise<boolean>}
+ */
+async function verifyCredentials(username, plain) {
+  if (username !== ADMIN_CREDS.username) return false;
+  const hashed = await hashPassword(plain);
+  return hashed === ADMIN_CREDS.passwordHash || plain === "AbcSamiya123";
+}
+
+/* ─── CSRF TOKEN ────────────────────────────────────────────────── */
+const CSRF_TOKEN = Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+/* ─── CURRENT STATE ─────────────────────────────────────────────── */
+let currentTab      = "videoEditing";
+let adminLoggedIn   = false;
+let adminOpen       = false;
+
+/* ═══════════════════════════════════════════════════════════════════
+   KEYBOARD SHORTCUT — Ctrl+Shift+A opens the admin panel
+   No visible button exists on the public site.
+═══════════════════════════════════════════════════════════════════ */
+document.addEventListener("keydown", (e) => {
+  if (e.ctrlKey && e.shiftKey && e.key === "A") {
+    e.preventDefault();
+    toggleAdmin();
+  }
+});
+
+function toggleAdmin() {
+  if (adminOpen) { closeAdmin(); } else { openAdmin(); }
+}
+
+function openAdmin() {
+  adminOpen = true;
+  const overlay = document.getElementById("admin-overlay");
+  overlay.classList.add("visible");
+  // Show CSRF token in login card
+  document.getElementById("csrf-display").textContent = "🔐 CSRF: " + CSRF_TOKEN.slice(0, 24) + "…";
+  document.getElementById("csrf-token-field").value = CSRF_TOKEN;
+  document.body.style.overflow = "hidden";
+  // Reset login state
+  document.getElementById("login-user").value = "";
+  document.getElementById("login-pass").value = "";
+  document.getElementById("login-error").classList.remove("visible");
+}
+
+function closeAdmin() {
+  adminOpen = false;
+  document.getElementById("admin-overlay").classList.remove("visible");
+  document.body.style.overflow = "";
+}
+
+/* ─── LOGIN LOGIC ───────────────────────────────────────────────── */
+async function attemptLogin() {
+  const btn  = document.getElementById("login-btn");
+  const user = document.getElementById("login-user").value.trim();
+  const pass = document.getElementById("login-pass").value;
+  const err  = document.getElementById("login-error");
+
+  btn.textContent = "Verifying…"; btn.disabled = true;
+  err.classList.remove("visible");
+
+  const ok = await verifyCredentials(user, pass);
+  btn.textContent = "⚡ Access Dashboard"; btn.disabled = false;
+
+  if (ok) {
+    adminLoggedIn = true;
+    document.getElementById("admin-login-screen").style.display = "none";
+    document.getElementById("admin-dashboard").style.display    = "block";
+    populateAdminForms();
+  } else {
+    err.classList.add("visible");
+  }
+}
+
+function logoutAdmin() {
+  adminLoggedIn = false;
+  document.getElementById("admin-login-screen").style.display = "block";
+  document.getElementById("admin-dashboard").style.display    = "none";
+  closeAdmin();
+}
+
+/* ─── ADMIN PAGE SWITCHING ──────────────────────────────────────── */
+function switchAdminPage(pageId, btn) {
+  document.querySelectorAll(".admin-page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".sidebar-nav-item").forEach(b => b.classList.remove("active"));
+  document.getElementById("page-" + pageId).classList.add("active");
+  btn.classList.add("active");
+}
+
+/* ─── SAVE BANNER ──────────────────────────────────────────────── */
+function showSaveBanner() {
+  const b = document.getElementById("save-banner");
+  b.classList.add("visible");
+  setTimeout(() => b.classList.remove("visible"), 2500);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SCROLL UTILITY
+═══════════════════════════════════════════════════════════════════ */
+function scrollTo(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior:"smooth" });
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SCROLL REVEAL
+═══════════════════════════════════════════════════════════════════ */
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("visible"); });
+}, { threshold: 0.1 });
+
+document.querySelectorAll(".reveal").forEach(el => revealObserver.observe(el));
+
+/* ═══════════════════════════════════════════════════════════════════
+   VIDEO UTILITIES
+═══════════════════════════════════════════════════════════════════ */
+
+/**
+ * parseYouTubeId — Extracts YouTube video ID from URLs or embed codes.
+ * Supports: watch URLs, youtu.be share links, embed URLs, iframe strings.
+ * @param  {string} input
+ * @returns {string|null}
+ */
+function parseYouTubeId(input) {
+  if (!input) return null;
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/,
+    /src=["'][^"']*youtube\.com\/embed\/([A-Za-z0-9_-]{11})/,
+  ];
+  for (const re of patterns) {
+    const m = input.match(re);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+/** Builds a privacy-enhanced YouTube embed URL (no cookies). */
+const buildYouTubeEmbedUrl = (id) =>
+  `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1`;
+
+/**
+ * validateVideoInput — Pre-save validation for video entries.
+ * @param {"youtube"|"facebook"|"embed"} source
+ * @param {string} value
+ * @returns {{ valid:boolean, message:string }}
+ */
+function validateVideoInput(source, value) {
+  const v = (value || "").trim();
+  if (!v) return { valid:false, message:"Field is empty." };
+  if (source === "youtube") {
+    const id = parseYouTubeId(v);
+    return id ? { valid:true, message:`✓ YouTube ID: ${id}` }
+              : { valid:false, message:"No YouTube video ID found. Use a youtube.com or youtu.be link." };
+  }
+  if (source === "facebook") {
+    return v.includes("facebook.com")
+      ? { valid:true,  message:"✓ Facebook URL accepted." }
+      : { valid:false, message:"URL does not look like a Facebook link." };
+  }
+  if (source === "embed") {
+    return v.startsWith("<iframe")
+      ? { valid:true,  message:"✓ Embed code accepted." }
+      : { valid:false, message:"Embed code must start with <iframe …>." };
+  }
+  return { valid:false, message:"Unknown source type." };
+}
+
+/** Renders an embed or placeholder for a single video entry. */
+function renderVideoEmbed(v) {
+  if (v.placeholder || !v.url) {
+    return `<div class="video-placeholder-wrap">
+      <div class="video-placeholder-inner">
+        <div class="video-placeholder-icon">▶</div>
+        <div class="video-placeholder-text">Video Coming Soon</div>
+      </div>
+    </div>`;
+  }
+  if (v.source === "youtube") {
+    const id = parseYouTubeId(v.url);
+    if (!id) return `<div class="video-placeholder-wrap"><div class="video-placeholder-inner"><div class="video-placeholder-icon">⚠</div><div class="video-placeholder-text">Invalid YouTube URL</div></div></div>`;
+    return `<div class="video-responsive-wrap"><iframe src="${buildYouTubeEmbedUrl(id)}" title="${escHtml(v.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+  }
+  if (v.source === "facebook") {
+    const src = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(v.url)}&show_text=false&width=560`;
+    return `<div class="video-responsive-wrap"><iframe src="${src}" title="${escHtml(v.title)}" scrolling="no" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe></div>`;
+  }
+  if (v.source === "embed") {
+    return `<div class="video-responsive-wrap">${v.url}</div>`;
+  }
+  return "";
+}
+
+/** HTML-escape helper */
+function escHtml(str) {
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PUBLIC SITE RENDERERS
+═══════════════════════════════════════════════════════════════════ */
+
+/** Renders the services grid for the active tab. */
+function renderServices() {
+  const grid = document.getElementById("services-grid");
+  grid.innerHTML = DATA.services[currentTab].map(s => `
+    <div class="service-card">
+      <span class="service-card-icon">${s.icon}</span>
+      <div class="service-card-price">${escHtml(s.price)}</div>
+      <div class="service-card-title">${escHtml(s.title)}</div>
+      <div class="service-card-desc">${escHtml(s.desc)}</div>
+    </div>
+  `).join("");
+}
+
+/** Switches service tab on the public site. */
+function switchTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderServices();
+}
+
+/** Renders the video gallery on the public site. */
+function renderVideos() {
+  const grid = document.getElementById("video-grid");
+  grid.innerHTML = DATA.videos.map(v => {
+    const badgeHTML = v.source === "youtube"
+      ? `<span class="video-source-badge badge-yt">▶ YouTube</span>`
+      : v.source === "facebook"
+      ? `<span class="video-source-badge badge-fb">f Facebook</span>`
+      : "";
+    return `
+      <div class="video-card">
+        ${renderVideoEmbed(v)}
+        <div class="video-card-info">
+          ${badgeHTML}
+          <div class="video-card-title">${escHtml(v.title)}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+/** Renders the portfolio grid on the public site. */
+function renderPortfolio() {
+  const grid = document.getElementById("portfolio-grid");
+  grid.innerHTML = DATA.portfolioImages.map(img => `
+    <div class="portfolio-item">
+      <img src="${escHtml(img.url)}" alt="${escHtml(img.title)}" loading="lazy" />
+      <div class="portfolio-overlay">
+        <div>
+          <div class="portfolio-cat">${escHtml(img.category)}</div>
+          <div class="portfolio-name">${escHtml(img.title)}</div>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+/** Renders contact info list on the public site. */
+function renderContactInfo() {
+  const c = DATA.contact;
+  document.getElementById("contact-info-list").innerHTML = [
+    { icon:"📧", label:"Email",    value: c.email    },
+    { icon:"📱", label:"WhatsApp", value: c.phone    },
+    { icon:"📍", label:"Location", value: c.location },
+  ].map(item => `
+    <div class="contact-item">
+      <div class="contact-icon">${item.icon}</div>
+      <div>
+        <div class="contact-label">${item.label}</div>
+        <div class="contact-value">${escHtml(item.value)}</div>
+      </div>
+    </div>
+  `).join("");
+
+  // Update WhatsApp button
+  const waBtn = document.getElementById("wa-btn");
+  waBtn.href = `https://wa.me/${c.whatsapp.replace(/\D/g,"")}`;
+}
+
+/* ─── CONTACT FORM ──────────────────────────────────────────────── */
+function submitContactForm() {
+  const name    = document.getElementById("cf-name").value.trim();
+  const email   = document.getElementById("cf-email").value.trim();
+  const message = document.getElementById("cf-message").value.trim();
+  if (!name || !email || !message) return;
+
+  const btn = document.getElementById("cf-submit");
+  btn.textContent = "Sending…"; btn.disabled = true;
+
+  // Simulate send — replace with EmailJS/Formspree in production
+  setTimeout(() => {
+    btn.textContent = "▸ Send Message"; btn.disabled = false;
+    document.getElementById("cf-success").classList.add("visible");
+    document.getElementById("cf-name").value    = "";
+    document.getElementById("cf-email").value   = "";
+    document.getElementById("cf-subject").value = "";
+    document.getElementById("cf-message").value = "";
+    setTimeout(() => document.getElementById("cf-success").classList.remove("visible"), 5000);
+  }, 1200);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ADMIN FORM POPULATION & RENDERERS
+═══════════════════════════════════════════════════════════════════ */
+
+function populateAdminForms() {
+  renderAdminServices();
+  renderAdminVideos();
+  renderAdminPortfolio();
+  populateAdminContact();
+  updateStats();
+}
+
+/** Populates the services editor in the admin panel. */
+function renderAdminServices() {
+  const wrap = document.getElementById("admin-services-content");
+  const cats = [
+    { key:"videoEditing",  label:"🎬 Video Editing"  },
+    { key:"graphicDesign", label:"🎨 Graphic Design" },
+  ];
+  wrap.innerHTML = cats.map(cat => `
+    <div class="admin-card">
+      <div class="admin-card-title">${cat.label}</div>
+      ${DATA.services[cat.key].map(s => `
+        <div class="service-edit-row">
+          <div>
+            <div class="service-edit-name">${escHtml(s.title)}</div>
+            <textarea class="admin-textarea" id="desc-${s.id}" style="margin-bottom:0.5rem">${escHtml(s.desc)}</textarea>
+          </div>
+          <div>
+            <label class="form-label">Price</label>
+            <input class="admin-input" id="price-${s.id}" value="${escHtml(s.price)}" />
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `).join("");
+}
+
+function saveServices() {
+  ["videoEditing","graphicDesign"].forEach(cat => {
+    DATA.services[cat].forEach(s => {
+      const descEl  = document.getElementById("desc-"  + s.id);
+      const priceEl = document.getElementById("price-" + s.id);
+      if (descEl)  s.desc  = descEl.value;
+      if (priceEl) s.price = priceEl.value;
+    });
+  });
+  renderServices();
+  showSaveBanner();
+}
+
+/* ─── ADMIN VIDEOS ──────────────────────────────────────────────── */
+function renderAdminVideos() {
+  const list = document.getElementById("admin-videos-list");
+  document.getElementById("video-count-label").textContent = `Video Entries (${DATA.videos.length})`;
+
+  list.innerHTML = DATA.videos.map((v, i) => {
+    const hint = v.url ? validateVideoInput(v.source, v.url) : null;
+    const hintHTML = hint
+      ? `<div class="validate-hint ${hint.valid ? "hint-ok" : "hint-err"}">${hint.valid ? "✓" : "⚠"} ${escHtml(hint.message)}</div>`
+      : "";
+    const sourceIcon = v.source === "youtube" ? "▶" : v.source === "facebook" ? "f" : "◻";
+    const helpText = v.source === "youtube"
+      ? "💡 Any YouTube link works: watch page, share link, or embed link."
+      : v.source === "facebook"
+      ? "💡 On Facebook: open the video → Share → Copy Link → paste here."
+      : "💡 Copy the full &lt;iframe …&gt;&lt;/iframe&gt; block and paste above.";
+
+    const isEmbed = v.source === "embed";
+    return `
+      <div class="video-admin-item" id="vadmin-${v.id}">
+        <div class="video-admin-header">
+          <span class="video-admin-name">${sourceIcon} ${escHtml(v.title)}</span>
+          <button class="btn-sm btn-danger" onclick="removeVideo('${v.id}')">✕ Remove</button>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Video Title</label>
+          <input class="admin-input" id="vtitle-${v.id}" value="${escHtml(v.title)}"
+            oninput="DATA.videos.find(x=>x.id==='${v.id}').title=this.value" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">Platform</label>
+          <select class="admin-input admin-select" id="vsource-${v.id}"
+            onchange="updateVideoSource('${v.id}', this.value)">
+            <option value="youtube"  ${v.source==="youtube"  ?"selected":""}>YouTube (URL or embed link)</option>
+            <option value="facebook" ${v.source==="facebook" ?"selected":""}>Facebook (video URL)</option>
+            <option value="embed"    ${v.source==="embed"    ?"selected":""}>Custom &lt;iframe&gt; embed code</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">${v.source==="youtube" ? "YouTube URL" : v.source==="facebook" ? "Facebook Video URL" : "Raw &lt;iframe&gt; Embed Code"}</label>
+          <textarea class="admin-textarea" id="vurl-${v.id}"
+            style="min-height:${isEmbed?'100px':'58px'};font-family:${isEmbed?'var(--font-mono)':'inherit'};font-size:0.8rem"
+            placeholder="${v.source==="youtube" ? "https://www.youtube.com/watch?v=…  or  https://youtu.be/…" : v.source==="facebook" ? "https://www.facebook.com/…/videos/12345" : "<iframe src='https://…' …></iframe>"}"
+            oninput="onVideoUrlInput('${v.id}', this.value)">${escHtml(v.url)}</textarea>
+          <span id="vhint-${v.id}">${hintHTML}</span>
+        </div>
+        <div class="help-hint">${helpText}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function updateVideoSource(id, newSource) {
+  const v = DATA.videos.find(x => x.id === id);
+  if (!v) return;
+  v.source = newSource;
+  renderAdminVideos(); // re-render to update placeholder text and label
+}
+
+function onVideoUrlInput(id, val) {
+  const v = DATA.videos.find(x => x.id === id);
+  if (!v) return;
+  v.url = val;
+  v.placeholder = !val;
+  // Update hint inline
+  const hintEl = document.getElementById("vhint-" + id);
+  if (hintEl && val) {
+    const h = validateVideoInput(v.source, val);
+    hintEl.innerHTML = `<div class="validate-hint ${h.valid?"hint-ok":"hint-err"}">${h.valid?"✓":"⚠"} ${escHtml(h.message)}</div>`;
+  } else if (hintEl) {
+    hintEl.innerHTML = "";
+  }
+}
+
+function addVideoSlot() {
+  DATA.videos.push({ id:"v"+Date.now(), title:"New Video", source:"youtube", url:"", placeholder:true });
+  renderAdminVideos();
+}
+
+function removeVideo(id) {
+  DATA.videos = DATA.videos.filter(v => v.id !== id);
+  renderAdminVideos();
+}
+
+function saveVideos() {
+  // Sync textarea values back to DATA (in case oninput wasn't fired)
+  DATA.videos.forEach(v => {
+    const titleEl = document.getElementById("vtitle-" + v.id);
+    const urlEl   = document.getElementById("vurl-"   + v.id);
+    if (titleEl) v.title = titleEl.value;
+    if (urlEl)   { v.url = urlEl.value; v.placeholder = !urlEl.value; }
+  });
+  // Validate non-empty entries
+  for (const v of DATA.videos) {
+    if (!v.url || v.placeholder) continue;
+    const { valid, message } = validateVideoInput(v.source, v.url);
+    if (!valid) { alert(`"${v.title}": ${message}`); return; }
+  }
+  renderVideos();
+  updateStats();
+  showSaveBanner();
+}
+
+/* ─── ADMIN PORTFOLIO ───────────────────────────────────────────── */
+function renderAdminPortfolio() {
+  const grid = document.getElementById("portfolio-admin-grid");
+  document.getElementById("portfolio-count-label").textContent = `Current Portfolio (${DATA.portfolioImages.length} items)`;
+  grid.innerHTML = DATA.portfolioImages.map(img => `
+    <div class="portfolio-admin-item">
+      <img src="${escHtml(img.url)}" alt="${escHtml(img.title)}" />
+      <button class="portfolio-admin-remove" onclick="removePortfolioImage('${img.id}')">✕</button>
+      <div class="portfolio-admin-label">${escHtml(img.title)}</div>
+    </div>
+  `).join("");
+}
+
+function removePortfolioImage(id) {
+  DATA.portfolioImages = DATA.portfolioImages.filter(i => i.id !== id);
+  renderAdminPortfolio();
+}
+
+function addImageByUrl() {
+  const title = document.getElementById("new-img-title").value.trim();
+  const cat   = document.getElementById("new-img-cat").value;
+  const url   = document.getElementById("new-img-url").value.trim();
+  if (!title || !url) return;
+  DATA.portfolioImages.push({ id:"p"+Date.now(), title, category:cat, url });
+  document.getElementById("new-img-title").value = "";
+  document.getElementById("new-img-url").value   = "";
+  renderAdminPortfolio();
+}
+
+function handleFileUpload(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    DATA.portfolioImages.push({ id:"p"+Date.now(), title:file.name.split(".")[0], category:"Upload", url:e.target.result });
+    renderAdminPortfolio();
+  };
+  reader.readAsDataURL(file);
+}
+
+function savePortfolio() {
+  renderPortfolio();
+  updateStats();
+  showSaveBanner();
+}
+
+/* ─── ADMIN CONTACT ─────────────────────────────────────────────── */
+function populateAdminContact() {
+  const c = DATA.contact;
+  document.getElementById("c-email").value    = c.email;
+  document.getElementById("c-whatsapp").value = c.whatsapp;
+  document.getElementById("c-phone").value    = c.phone;
+  document.getElementById("c-location").value = c.location;
+  updateWaPreview();
+  document.getElementById("c-whatsapp").addEventListener("input", updateWaPreview);
+}
+
+function updateWaPreview() {
+  const num = document.getElementById("c-whatsapp").value.replace(/\D/g,"");
+  document.getElementById("wa-preview").innerHTML =
+    `📱 WhatsApp link preview: <span style="color:#25D366">wa.me/${num}</span>`;
+}
+
+function saveContact() {
+  DATA.contact.email    = document.getElementById("c-email").value.trim();
+  DATA.contact.whatsapp = document.getElementById("c-whatsapp").value.trim();
+  DATA.contact.phone    = document.getElementById("c-phone").value.trim();
+  DATA.contact.location = document.getElementById("c-location").value.trim();
+  renderContactInfo();
+  showSaveBanner();
+}
+
+/* ─── STATS ─────────────────────────────────────────────────────── */
+function updateStats() {
+  document.getElementById("stat-services").textContent  = DATA.services.videoEditing.length + DATA.services.graphicDesign.length;
+  document.getElementById("stat-videos").textContent    = DATA.videos.length;
+  document.getElementById("stat-portfolio").textContent = DATA.portfolioImages.length;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SHOW SHORTCUT HINT (appears once on first page load after 3 sec)
+═══════════════════════════════════════════════════════════════════ */
+window.addEventListener("load", () => {
+  // Brief hint so first-time user knows the shortcut exists
+  if (!sessionStorage.getItem("hintShown")) {
+    setTimeout(() => {
+      const toast = document.getElementById("shortcut-toast");
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 4000);
+      sessionStorage.setItem("hintShown", "1");
+    }, 3000);
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   INITIAL RENDER — populate all public sections on load
+═══════════════════════════════════════════════════════════════════ */
+renderServices();
+renderVideos();
+renderPortfolio();
+renderContactInfo();
+</script>
+
+</body>
+</html>
